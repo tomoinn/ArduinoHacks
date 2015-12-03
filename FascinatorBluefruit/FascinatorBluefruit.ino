@@ -180,6 +180,11 @@ void setOutputMode(uint8_t mode) {
   }
 }
 
+int count = 0;
+uint8_t red = 0;
+uint8_t green = 0;
+uint8_t blue = 0;
+
 /**************************************************************************/
 /*!
     @brief  Constantly poll for new command or response data
@@ -189,28 +194,26 @@ void loop(void)
 {
   /* Wait for new data to arrive */
   uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
-  if (len == 0) return;
-
-  /* Got a packet! */
-  //printHex(packetbuffer, len);
+  
 
   // Color
-  if (packetbuffer[1] == 'C') {
-    uint8_t red = packetbuffer[2];
-    uint8_t green = packetbuffer[3];
-    uint8_t blue = packetbuffer[4];
-    //Serial.print ("RGB #");
-    //if (red < 0x10) Serial.print("0");
-    //Serial.print(red, HEX);
-    //if (green < 0x10) Serial.print("0");
-    //Serial.print(green, HEX);
-    //if (blue < 0x10) Serial.print("0");
-    //Serial.println(blue, HEX);
+  if (len!=0 && packetbuffer[1] == 'C') {
+    red = packetbuffer[2];
+    green = packetbuffer[3];
+    blue = packetbuffer[4];
+  }
+  count = ++count % NUMPIXELS;
 
-    for (uint8_t i = 0; i < NUMPIXELS; i++) {
+  for (uint8_t i = 0; i < NUMPIXELS; i++) {
+    if (((i + count) % NUMPIXELS) <= 4) {
       pixel.setPixelColor(i, pixel.Color(red, green, blue));
+    }
+    else {
+      pixel.setPixelColor(i, pixel.Color(0, 0, 0));
     }
     pixel.show(); // This sends the updated pixel color to the hardware.
   }
+
+
 
 }
